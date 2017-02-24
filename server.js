@@ -1,34 +1,17 @@
-
-// const crypto = require('crypto'),
-var fs = require("fs");
-//
-// var privateKey = fs.readFileSync('key.pem').toString();
-// var certificate = fs.readFileSync('cert.pem').toString();
-//
-// var credentials = crypto.createCredentials({key: privateKey, cert: certificate});
-
-
-/*
-Load Twilio configuration from .env config file - the following environment
-variables should be set:
-process.env.TWILIO_ACCOUNT_SID
-process.env.TWILIO_API_KEY
-process.env.TWILIO_API_SECRET
-process.env.TWILIO_CONFIGURATION_SID
-*/
-require('dotenv').load();
-var http = require('http');
+var express = require('express');
+var app = express();
+app.use(express.static(__dirname + '/public'));
 var https = require('https');
 
+
+var fs = require("fs");
+require('dotenv').load();
+var http = require('http');
 var path = require('path');
 var AccessToken = require('twilio').AccessToken;
 var VideoGrant = AccessToken.VideoGrant;
-var express = require('express');
 var randomUsername = require('./randos');
 
-// Create Express webapp
-var app = express();
-app.use(express.static(path.join(__dirname, 'public')));
 
 /*
 Generate an Access Token for a chat application user - it generates a random
@@ -46,11 +29,6 @@ app.get('/token', function(request, response) {
         process.env.TWILIO_API_SECRET
     );
 
-    console.log([        process.env.TWILIO_ACCOUNT_SID,
-        process.env.TWILIO_API_KEY,
-        process.env.TWILIO_API_SECRET
-    ]);
-
     // Assign the generated identity to the token
     token.identity = identity;
 
@@ -67,26 +45,16 @@ app.get('/token', function(request, response) {
 });
 
 
-var credentials = {
+var options = {
     key: fs.readFileSync('key.pem'),
     cert: fs.readFileSync('cert.pem')
 };
 
 // Create http server and run it
-// var server = http.createServer(app);
-// var server = http.createServer(options, function(){
-//
-// });
-// var port = process.env.PORT || 3000;
-//
-// server.listen(port, function() {
-//     console.log('Express server running on *:' + port);
-// });
+var server = https.createServer(options, app);
 
-console.log(credentials);
+var port = process.env.PORT || 3000;
 
-var httpServer = http.createServer(app);
-var httpsServer = https.createServer(credentials, app);
-
-httpServer.listen(3000);
-httpsServer.listen(3003);
+server.listen(port, function() {
+    console.log('Express server running on *:' + port);
+});
